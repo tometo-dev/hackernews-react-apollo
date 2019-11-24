@@ -5,10 +5,22 @@ const feed = async (parent, args, context, info) => {
             { url_contains: args.filter },
         ],
     } : {}
+
     const links = await context.prisma.links({
-        where
+        where,
+        skip: args.skip,
+        first: args.first,
+        orderBy: args.orderBy
     })
-    return links
+    
+    const count = await context.prisma.linksConnection({
+        where,
+    }).aggregate().count()
+
+    return {
+        links,
+        count,
+    }
 }
 
 module.exports = {
