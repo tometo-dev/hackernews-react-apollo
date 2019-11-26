@@ -5,39 +5,61 @@ import gql from "graphql-tag"
 import Link from "./Link"
 
 
-const FEED_QUERY = gql`
-{
+export const FEED_QUERY = gql`
+  {
     feed {
-        links{
-            id
-            createdAt
-            url
-            description
+      links {
+        id
+        createdAt
+        url
+        description
+        postedBy {
+          id
+          name
         }
+        votes {
+          id
+          user {
+            id
+          }
+        }
+      }
     }
-}
+  }
 `
 
 const LinkList = (props) => {
-    return (
-        <Query query={FEED_QUERY}>
-            {({ loading, error, data }) => {
-                if (loading) return <div>Fetching...</div>
-                if (error) return <div>Error!!</div>
+  const _updateCacheAfterVote = (store, createVote, linkId) => {
+    const data = store.readQuery({ query: FEED_QUERY })
 
-                const linksToRender = data.feed.links
+    const votedLink = data.feed.links.find(link => link.id === linkId)
+    votedLink.votes = createVote.link.votes
 
-                return (
-                    <div>
-                        {linksToRender.map(link => <Link
-                            key={link.id}
-                            link={link} />
-                        )}
-                    </div>
-                )
-            }}
-        </Query>
-    )
+    store.writeQuery({ query: FEED_QUERY, data })
+  }
+  return (
+    <Query query={FEED_QUERY}>
+      {({ loading, error, data }) => {
+        if (loading) return <div>Fetching...</div>
+        if (error) return <div>Error!!</div>
+
+        const linksToRender = data.feed.links
+
+        return (
+          <div>
+            {linksToRender.map((link, index) =>
+              <Link
+                key={link.id}
+                link={link}
+                index={index}
+                updateStoreAfterVote={_updateCacheAfterVote}
+              />
+            )}
+          </div>
+        )
+      }}
+    </Query>
+  )
 
 }
 

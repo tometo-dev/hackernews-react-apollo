@@ -1,17 +1,36 @@
 import React, { useState } from "react"
+import { Mutation } from 'react-apollo'
+import gql from 'graphql-tag'
+
 import { AUTH_TOKEN } from "../constants"
 
-const Login = (props) => {
-    let [state, setState] = useState({
-        login: true, // switch b/w login and signup
-        email: "",
-        password: "",
-        name: "",
-    })
-    const { login, email, password, name } = state
+const SIGNUP_MUTATION = gql`
+  mutation SignupMutation($email: String!, $password: String!, $name: String!) {
+    signup(email: $email, password: $password, name: $name) {
+      token
+    }
+  }
+`
 
-    const _confirm = async () => {
-        // will be implemented later
+const LOGIN_MUTATION = gql`
+  mutation LoginMutation($email: String!, $password: String!) {
+    login(email: $email, password: $password) {
+      token
+    }
+  }
+`
+
+const Login = (props) => {
+
+    const [email, setEmail] = useState("")
+    const [login, setLogin] = useState(true)
+    const [password, setPassword] = useState("")
+    const [name, setName] = useState("")
+
+    const _confirm = async (data) => {
+        const { token } = login ? data.login : data.signup
+        _saveUserData(token)
+        props.history.push(`/`)
     }
 
     const _saveUserData = token => {
@@ -25,31 +44,39 @@ const Login = (props) => {
                 {!login && (
                     <input
                         value={name}
-                        onChange={e => setState(state => ({ ...state, name: e.target.value }))}
+                        onChange={e => setName(e.target.value)}
                         type="text"
                         placeholder="Your name"
                     />
                 )}
                 <input
                     value={email}
-                    onChange={e => setState(state => ({ ...state, email: e.target.value }))}
+                    onChange={e => setEmail(e.target.value)}
                     type="text"
                     placeholder="Your email address"
                 />
                 <input
                     value={password}
-                    onChange={e => setState(state => ({ ...state, password: e.target.value }))}
+                    onChange={e => setPassword(e.target.value)}
                     type="password"
                     placeholder="Choose a safe password"
                 />
             </div>
             <div className="flex mt3">
-                <div className="pointer mr2 button" onClick={() => _confirm()}>
-                    {login ? 'login' : 'create account'}
-                </div>
+                <Mutation
+                    mutation={login ? LOGIN_MUTATION : SIGNUP_MUTATION}
+                    variables={{ email, password, name }}
+                    onCompleted={data => _confirm(data)}
+                >
+                    {mutation => (
+                        <div className="pointer mr2 button" onClick={mutation}>
+                            {login ? 'login' : 'create account'}
+                        </div>
+                    )}
+                </Mutation>
                 <div
                     className="pointer button"
-                    onClick={() => setState(state => ({ ...state, login: !login }))}
+                    onClick={() => setLogin(!login)}
                 >
                     {login
                         ? 'need to create an account?'
