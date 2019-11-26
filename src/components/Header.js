@@ -11,13 +11,21 @@ const Header = (props) => {
 				<div className="fw7 mr1">Hacker News</div>
 				<Link to="/" className="ml1 no-underline black">
 					new
-          </Link>
+          		</Link>
+				<div className="ml1">|</div>
+				<Link to="/top" className="ml1 no-underline black">
+					top
+				</Link>
+				<div className="ml1">|</div>
+				<Link to="/search" className="ml1 no-underline black">
+					search
+  				</Link>
 				{authToken && (
 					<div className="flex">
 						<div className="ml1">|</div>
 						<Link to="/create" className="ml1 no-underline black">
 							submit
-              </Link>
+              			</Link>
 					</div>
 				)}
 			</div>
@@ -27,7 +35,7 @@ const Header = (props) => {
 						className="ml1 pointer black"
 						onClick={() => {
 							localStorage.removeItem(AUTH_TOKEN)
-							this.props.history.push(`/`)
+							props.history.push(`/`)
 						}}
 					>
 						logout
